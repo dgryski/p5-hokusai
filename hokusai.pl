@@ -2,7 +2,7 @@
 
 use Hokusai::Sketch;
 
-my $h = Hokusai::Sketch->new(0, 1);
+my $h = Hokusai::Sketch->new(0, 1, 20, 4);
 
 my $maxepoch = 0;
 

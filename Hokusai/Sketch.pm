@@ -5,16 +5,16 @@ use strict;
 
 use CountMin;
 
-use constant defaultSize => 18;
-
 sub new {
 
-    my ($class, $epoch0, $windowSize) = @_;
+    my ($class, $epoch0, $windowSize, $width, $depth) = @_;
 
     my $self = {
-        sk => newsketch(defaultSize),
+        sk => newsketch($width, $depth),
         epoch0 => $epoch0,
         endEpoch => $epoch0 + $windowSize,
+        width => $width,
+        depth => $depth,
         windowSize => $windowSize,
         items => [],
         times => [],
@@ -28,8 +28,8 @@ sub new {
 
 
 sub newsketch {
-    my $sz = shift;
-    return CountMin::sketch_new(1 << $sz, 4);
+    my ($width, $depth) = @_;
+    return CountMin::sketch_new(1 << $width, $depth);
 }
 
 
@@ -64,7 +64,7 @@ sub add {
     for (my $j=0;$j<$l;$j++) {
         my $t = CountMin::sketch_clone($m);
         if (scalar @{$self->{times}} <= $j) {
-            push @{$self->{times}}, newsketch(defaultSize);
+            push @{$self->{times}}, newsketch($self->{width}, $self->{depth});
         }
 
         my $mj = $self->{times}->[$j];
@@ -84,7 +84,7 @@ sub add {
             my $t = CountMin::sketch_clone($ssk);
 
             if (scalar @{$self->{itemtimes}} <= $j) {
-                push @{$self->{itemtimes}}, newsketch(defaultSize - $j - 1);
+                push @{$self->{itemtimes}}, newsketch($self->{width} - $j - 1, $self->{depth});
             }
 
             my $bj = $self->{itemtimes}->[$j];
@@ -93,7 +93,7 @@ sub add {
         }
     }
 
-    $self->{sk} = newsketch(defaultSize);
+    $self->{sk} = newsketch($self->{width}, $self->{depth});
 
     CountMin::sketch_add($self->{sk}, $s, 1);
 }
@@ -116,9 +116,9 @@ sub count {
     # how many bins wide is this sketch?
     my $width;
     if ($past <= 2) {
-        $width = defaultSize;
+        $width = $self->{width};
     } else {
-        $width = defaultSize - ilog2($past-1) + 1;
+        $width = $self->{width} - ilog2($past-1) + 1;
     }
 
 
