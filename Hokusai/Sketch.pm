@@ -109,6 +109,19 @@ sub count {
     }
 
     # Algorithm 5
+
+    # how far in the past are we?
+    my $past = $self->{timeUnits} - $t;
+
+    # how many bins wide is this sketch?
+    my $width;
+    if ($past <= 2) {
+        $width = defaultSize;
+    } else {
+        $width = defaultSize - ilog2($past-1) + 1;
+    }
+
+
     my $avals = CountMin::sketch_values($self->{items}->[$t], $s);
 
     my $mina = $avals->[0];
@@ -119,11 +132,11 @@ sub count {
         }
     }
 
-    if ($mina > (exp(1) * $t)/(1 << (defaultSize - $t - 1))) {
+    if ($mina > ((exp(1) * $t)/(1 << $width))) {
         return $mina;
     }
 
-    my $jstar = ilog2($self->{timeUnits}-1) - 1;
+    my $jstar = ilog2($past) - 1;
 
     my $mvals = CountMin::sketch_values($self->{times}->[$jstar], $s);
     my $bvals = CountMin::sketch_values($self->{itemtimes}->[$jstar], $s);
