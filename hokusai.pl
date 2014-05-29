@@ -16,5 +16,5 @@ while(<>) {
     }
 }
 
-printf ("$_: %d\n", $h->count($_, $query)) for 1..$maxepoch;
+printf ("$_: %d\n", $h->count($_, $query)) for 0..$maxepoch;
 
